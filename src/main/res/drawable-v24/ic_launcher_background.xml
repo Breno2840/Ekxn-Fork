@@ -8,9 +8,11 @@
       android:scaleY="0.68"
       android:translateX="17.28"
       android:translateY="17.28">
+      
     <path
         android:pathData="M0,0h108v108h-108z"
-        android:fillColor="#4BAE4F"/>
+        android:fillColor="#3D0E8F"/>
+        
     <group>
       <clip-path
           android:pathData="M0,0h108v108h-108z"/>
