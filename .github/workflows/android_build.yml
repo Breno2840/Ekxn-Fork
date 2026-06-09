@@ -1,0 +1,81 @@
+name: Build and Sign Android APK
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Decode Keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > release.keystore
+
+      # 1. Compila os APKs de Release nativamente
+      - name: Build Release APKs
+        run: ./gradlew assembleConversationsFreeRelease
+
+      # 2. Seu debug mantido aqui para você inspecionar os arquivos originais gerados
+      - name: "Debug: Locate APKs"
+        run: find . -name "*.apk"
+
+      # 3. Alinha, assina e filtra para processar apenas armv7, armv8 e universal
+      - name: Zipalign and Sign APKs
+        run: |
+          BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | tail -1)
+          mkdir -p final_apks
+          
+          echo "Iniciando processo de alinhamento e assinatura..."
+
+          # O comando '! -name "*x86*"' faz o Linux ignorar qualquer APK que tenha x86 no nome
+          for APK_PATH in $(find . -type f -name "*-unsigned.apk" ! -name "*x86*"); do
+            BASENAME=$(basename $APK_PATH)
+            
+            # Remove o "-unsigned" e adiciona o "-FINAL"
+            CLEAN_NAME="${BASENAME/-unsigned/-FINAL}"
+            
+            ALIGNED_APK="final_apks/aligned-$CLEAN_NAME"
+            FINAL_APK="final_apks/$CLEAN_NAME"
+
+            echo "-> Alinhando e Assinando: $CLEAN_NAME"
+
+            $BUILD_TOOLS/zipalign -v -p 4 $APK_PATH $ALIGNED_APK
+
+            $BUILD_TOOLS/apksigner sign \
+              --ks release.keystore \
+              --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
+              --ks-key-alias ${{ secrets.KEY_ALIAS }} \
+              --key-pass pass:${{ secrets.KEY_PASSWORD }} \
+              --out $FINAL_APK \
+              $ALIGNED_APK
+              
+            rm $ALIGNED_APK
+          done
+
+      # 4. Faz o upload apenas dos 3 arquivos que você quer
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: conversations-final-build
+          path: |
+            final_apks/*arm64-v8a*.apk
+            final_apks/*armeabi-v7a*.apk
+            final_apks/*universal*.apk
+          if-no-files-found: error
