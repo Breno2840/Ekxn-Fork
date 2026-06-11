@@ -95,7 +95,7 @@
 
     <style name="ShapeAppearance.RoundedCornersMedium" parent="ShapeAppearance.MaterialComponents.SmallComponent">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">8dp</item>
+        <item name="cornerSize">50%</item>
     </style>
 
     <style name="ShapeAppearance.RoundedCornersLight" parent="ShapeAppearance.MaterialComponents.SmallComponent">
