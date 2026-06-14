@@ -88,7 +88,7 @@ public class PublishProfilePictureActivity extends XmppActivity
         setSupportActionBar(binding.toolbar);
         Activities.setStatusAndNavigationBarColors(this, binding.getRoot());
 
-        // Ativa o botão de Gerar Avatar Aleatório
+        // Botão de Gerar Avatar Aleatório
         Button btnGenerate = binding.generateAvatarButton;
         btnGenerate.setOnClickListener(v -> gerarAvatarAleatorio());
 
@@ -134,13 +134,19 @@ public class PublishProfilePictureActivity extends XmppActivity
         String url = "https://api.multiavatar.com/" + randomSeed + ".svg";
 
         OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder().url(url).build();
+        
+        // Colocamos um User-Agent para o servidor achar que somos um celular normal
+        Request request = new Request.Builder()
+                .url(url)
+                .header("User-Agent", "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36")
+                .build();
 
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 runOnUiThread(() -> {
-                    Toast.makeText(PublishProfilePictureActivity.this, "Erro de conexão", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(PublishProfilePictureActivity.this, "Sem ligação à internet", Toast.LENGTH_SHORT).show();
+                    binding.publishButton.setEnabled(true);
                     binding.publishButton.setText(R.string.publish);
                 });
             }
@@ -156,7 +162,7 @@ public class PublishProfilePictureActivity extends XmppActivity
                             Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
                             Canvas canvas = new Canvas(bitmap);
                             
-                            // Fundo preto sólido para destacar
+                            // Mantendo o nosso padrão de stickers sempre com fundo preto
                             canvas.drawColor(Color.BLACK); 
                             
                             svg.setDocumentWidth(size);
@@ -174,9 +180,16 @@ public class PublishProfilePictureActivity extends XmppActivity
                             
                         } catch (Exception e) {
                             e.printStackTrace();
-                            Toast.makeText(PublishProfilePictureActivity.this, "Erro ao processar avatar", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(PublishProfilePictureActivity.this, "Erro a desenhar o sticker", Toast.LENGTH_SHORT).show();
+                            binding.publishButton.setEnabled(true);
                             binding.publishButton.setText(R.string.publish);
                         }
+                    });
+                } else {
+                    runOnUiThread(() -> {
+                        Toast.makeText(PublishProfilePictureActivity.this, "O servidor recusou a ligação", Toast.LENGTH_SHORT).show();
+                        binding.publishButton.setEnabled(true);
+                        binding.publishButton.setText(R.string.publish);
                     });
                 }
             }
