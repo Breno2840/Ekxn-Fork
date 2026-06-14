@@ -10,14 +10,16 @@ public class MultiavatarHelper {
 
     /**
      * Gera um Bitmap de avatar baseado em uma semente (seed) usando o algoritmo Multiavatar.
-     * 
-     * @param seed Qualquer string (nome, UUID, etc) para gerar um avatar único.
+     * * @param seed Qualquer string (nome, UUID, etc) para gerar um avatar único.
      * @param size Tamanho do Bitmap (largura e altura).
      * @return Bitmap gerado ou null em caso de erro.
      */
     public static Bitmap generateAvatar(String seed, int size) {
-        String svgString = MultiavatarGen.genAvatarSvg(seed);
         try {
+            // Correção: pegamos os bytes gerados e transformamos em String
+            byte[] svgBytes = MultiavatarGen.genAvatarSvg(seed);
+            String svgString = new String(svgBytes);
+            
             SVG svg = SVG.getFromString(svgString);
             Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
