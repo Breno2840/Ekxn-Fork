@@ -2,8 +2,6 @@ package eu.siacs.conversations.ui;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,7 +20,6 @@ import androidx.databinding.DataBindingUtil;
 import com.canhub.cropper.CropImageContract;
 import com.canhub.cropper.CropImageContractOptions;
 import com.canhub.cropper.CropImageOptions;
-import com.caverock.androidsvg.SVG;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -30,7 +27,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.UUID;
 
 import eu.siacs.conversations.Config;
@@ -43,11 +39,6 @@ import eu.siacs.conversations.utils.PhoneHelper;
 import eu.siacs.conversations.xmpp.manager.AvatarManager;
 import eu.siacs.conversations.xmpp.manager.PepManager;
 import im.conversations.android.xmpp.NodeConfiguration;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class PublishProfilePictureActivity extends XmppActivity
         implements XmppConnectionService.OnAccountUpdate, OnAvatarPublication {
@@ -130,70 +121,33 @@ public class PublishProfilePictureActivity extends XmppActivity
         binding.publishButton.setEnabled(false);
         binding.publishButton.setText("A gerar...");
 
+        // Gera um texto aleatório para servir de semente
         String randomSeed = UUID.randomUUID().toString().substring(0, 8);
-        String url = "https://api.multiavatar.com/" + randomSeed + ".svg";
-
-        OkHttpClient client = new OkHttpClient();
         
-        // Colocamos um User-Agent para o servidor achar que somos um celular normal
-        Request request = new Request.Builder()
-                .url(url)
-                .header("User-Agent", "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36")
-                .build();
+        // Puxa o seu arquivo Helper local para criar o Bitmap com fundo aleatório original
+        Bitmap bitmap = eu.siacs.conversations.utils.MultiavatarHelper.generateAvatar(randomSeed, 500);
 
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                runOnUiThread(() -> {
-                    Toast.makeText(PublishProfilePictureActivity.this, "Sem ligação à internet", Toast.LENGTH_SHORT).show();
-                    binding.publishButton.setEnabled(true);
-                    binding.publishButton.setText(R.string.publish);
-                });
+        if (bitmap != null) {
+            try {
+                // Salva o arquivo temporariamente no celular
+                File tempFile = new File(getCacheDir(), "avatar_temp.png");
+                FileOutputStream out = new FileOutputStream(tempFile);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                out.flush();
+                out.close();
+
+                // Atualiza o preview da tela com a imagem gerada
+                avatarUri = Uri.fromFile(tempFile);
+                loadImageIntoPreview(avatarUri);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Erro ao salvar o avatar", Toast.LENGTH_SHORT).show();
+                binding.publishButton.setText(R.string.publish);
             }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (response.isSuccessful() && response.body() != null) {
-                    final String svgText = response.body().string();
-                    runOnUiThread(() -> {
-                        try {
-                            SVG svg = SVG.getFromString(svgText);
-                            int size = 500;
-                            Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-                            Canvas canvas = new Canvas(bitmap);
-                            
-                            // Mantendo o nosso padrão de stickers sempre com fundo preto
-                            canvas.drawColor(Color.BLACK); 
-                            
-                            svg.setDocumentWidth(size);
-                            svg.setDocumentHeight(size);
-                            svg.renderToCanvas(canvas);
-
-                            File tempFile = new File(getCacheDir(), "avatar_temp.png");
-                            FileOutputStream out = new FileOutputStream(tempFile);
-                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-                            out.flush();
-                            out.close();
-
-                            avatarUri = Uri.fromFile(tempFile);
-                            loadImageIntoPreview(avatarUri);
-                            
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Toast.makeText(PublishProfilePictureActivity.this, "Erro a desenhar o sticker", Toast.LENGTH_SHORT).show();
-                            binding.publishButton.setEnabled(true);
-                            binding.publishButton.setText(R.string.publish);
-                        }
-                    });
-                } else {
-                    runOnUiThread(() -> {
-                        Toast.makeText(PublishProfilePictureActivity.this, "O servidor recusou a ligação", Toast.LENGTH_SHORT).show();
-                        binding.publishButton.setEnabled(true);
-                        binding.publishButton.setText(R.string.publish);
-                    });
-                }
-            }
-        });
+        } else {
+            Toast.makeText(this, "Erro ao desenhar o avatar", Toast.LENGTH_SHORT).show();
+            binding.publishButton.setText(R.string.publish);
+        }
     }
 
     @Override
