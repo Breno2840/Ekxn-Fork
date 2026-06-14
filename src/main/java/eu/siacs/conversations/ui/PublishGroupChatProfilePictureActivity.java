@@ -98,18 +98,15 @@ public class PublishGroupChatProfilePictureActivity extends XmppActivity
                 DataBindingUtil.setContentView(this, R.layout.activity_publish_profile_picture);
         this.binding.contactOnly.setVisibility(View.GONE);
         
-        // Esconde a grade de avatares prontos para não aparecer no chat em grupo
-        if (this.binding.avatarGrid != null) {
-            this.binding.avatarGrid.setVisibility(View.GONE);
+        // Esconde o botão de gerar avatar aleatório para não aparecer no chat em grupo
+        if (this.binding.generateAvatarButton != null) {
+            this.binding.generateAvatarButton.setVisibility(View.GONE);
         }
         
         Activities.setStatusAndNavigationBarColors(this, binding.getRoot());
         setSupportActionBar(this.binding.toolbar);
         configureActionBar(getSupportActionBar());
         this.binding.cancelButton.setOnClickListener((v) -> this.finish());
-        
-        // LINHA COMENTADA PARA CORRIGIR O ERRO:
-        // this.binding.secondaryHint.setVisibility(View.GONE);
         
         this.binding.accountImage.setOnClickListener((v) -> pickAvatar());
 
