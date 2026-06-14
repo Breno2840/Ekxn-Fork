@@ -124,7 +124,7 @@ public class PublishProfilePictureActivity extends XmppActivity
         // Gera um texto aleatório para servir de semente
         String randomSeed = UUID.randomUUID().toString().substring(0, 8);
         
-        // Puxa o seu arquivo Helper local para criar o Bitmap com fundo aleatório original
+        // Puxa o seu arquivo Helper local para criar o Bitmap
         Bitmap bitmap = eu.siacs.conversations.utils.MultiavatarHelper.generateAvatar(randomSeed, 500);
 
         if (bitmap != null) {
@@ -139,6 +139,10 @@ public class PublishProfilePictureActivity extends XmppActivity
                 // Atualiza o preview da tela com a imagem gerada
                 avatarUri = Uri.fromFile(tempFile);
                 loadImageIntoPreview(avatarUri);
+                
+                // MÁGICA: Removemos o quadrado cinza, deixando o fundo totalmente transparente
+                binding.accountImageWrapper.setBackgroundResource(0);
+                
             } catch (Exception e) {
                 e.printStackTrace();
                 Toast.makeText(this, "Erro ao salvar o avatar", Toast.LENGTH_SHORT).show();
