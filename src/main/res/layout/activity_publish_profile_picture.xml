@@ -54,17 +54,14 @@
                         android:contentDescription="@string/your_avatar_tap_to_select_new_avatar" />
                 </FrameLayout>
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/avatar_grid"
-                    android:layout_width="match_parent"
+                <Button
+                    android:id="@+id/generate_avatar_button"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="16dp"
-                    android:clipToPadding="false"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                    app:spanCount="4" />
+                    android:text="Gerar Avatar Aleatório 🎲" />
 
                 <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/contact_only"
