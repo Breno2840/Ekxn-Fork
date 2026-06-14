@@ -47,7 +47,9 @@ dependencies {
     annotationProcessor 'org.immutables:value:2.12.2'
     implementation 'org.immutables:value-annotations:2.12.2'
     annotationProcessor project(':libs:annotation-processor')
-    implementation project(':libs:annotation')
+    implementation project(':libs:annotation')    
+    implementation 'com.caverock:androidsvg-aar:1.4'
+
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'androidx.concurrent:concurrent-futures:1.3.0'
@@ -73,7 +75,7 @@ dependencies {
     implementation 'com.vanniktech:android-image-cropper:4.7.0'
     implementation 'im.conversations.webrtc:webrtc-android:129.0.0'
     implementation 'io.deepmedia.community:transcoder-android:0.11.2'
-    implementation 'me.leolin:ShortcutBadger:1.1.22@aar'
+    me.leolin:ShortcutBadger:1.1.22@aar'
     //noinspection NewerVersionAvailable
     implementation 'net.fellbaum:jemoji:1.7.6' //1.7.6 is the latest with Java 8 support
     implementation 'org.bouncycastle:bcmail-jdk18on:1.84'
@@ -95,7 +97,6 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.3.0'
 
 }
-
 ext {
     preDexEnabled = System.getProperty("pre-dex", "true")
     abiCodes = ['armeabi-v7a': 1, 'x86': 2, 'x86_64': 3, 'arm64-v8a': 4]
@@ -145,7 +146,6 @@ android {
 
     flavorDimensions += "mode"
     flavorDimensions += "distribution"
-
     productFlavors {
 
         quicksy {
@@ -194,8 +194,7 @@ android {
             }
         }
         quicksyPlaystore {
-            java {
-                srcDir 'src/quicksyPlaystore/java'
+            java {                srcDir 'src/quicksyPlaystore/java'
             }
             res {
                 srcDir 'src/quicksyPlaystore/res'
@@ -244,8 +243,7 @@ android {
     subprojects {
 
         afterEvaluate {
-            if (getPlugins().hasPlugin('android') ||
-                    getPlugins().hasPlugin('android-library')) {
+            if (getPlugins().hasPlugin('android') ||                    getPlugins().hasPlugin('android-library')) {
 
                 configure(android.lintOptions) {
                     disable 'AndroidGradlePluginVersion', 'MissingTranslation'
