@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
     <RelativeLayout
@@ -53,19 +54,17 @@
                         android:contentDescription="@string/your_avatar_tap_to_select_new_avatar" />
                 </FrameLayout>
 
-                <TextView
-                    android:id="@+id/hint"
-                    android:layout_width="wrap_content"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/avatar_grid"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/touch_to_choose_picture"
-                    android:textAppearance="?textAppearanceBodyMedium" />
-
-                <TextView
-                    android:id="@+id/secondary_hint"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/or_long_press_for_default"
-                    android:textAppearance="?textAppearanceBodyMedium" />
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:clipToPadding="false"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                    app:spanCount="4" />
 
                 <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/contact_only"
