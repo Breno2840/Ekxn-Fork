@@ -8,13 +8,17 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnLongClickListener;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.canhub.cropper.CropImageContract;
 import com.canhub.cropper.CropImageContractOptions;
 import com.canhub.cropper.CropImageOptions;
@@ -22,6 +26,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+
 import eu.siacs.conversations.Config;
 import eu.siacs.conversations.R;
 import eu.siacs.conversations.databinding.ActivityPublishProfilePictureBinding;
@@ -43,9 +48,14 @@ public class PublishProfilePictureActivity extends XmppActivity
     private Account account;
     private boolean support = false;
     private boolean publishing = false;
-    private final OnLongClickListener backToDefaultListener =
-            new OnLongClickListener() {
+    
+    // NOSSA LISTA DE AVATARES PRONTOS (Só 1 para teste por enquanto)
+    private final int[] meusAvatares = {
+            R.drawable.avatar_teste
+    };
 
+    private View.OnLongClickListener backToDefaultListener =
+            new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
                     avatarUri = defaultUri;
@@ -107,10 +117,46 @@ public class PublishProfilePictureActivity extends XmppActivity
 
         Activities.setStatusAndNavigationBarColors(this, binding.getRoot());
 
+        // --- INÍCIO DA CONFIGURAÇÃO DA GRADE DE AVATARES ---
+        RecyclerView avatarGrid = binding.avatarGrid;
+        avatarGrid.setAdapter(new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+            @NonNull
+            @Override
+            public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                ImageView img = new ImageView(parent.getContext());
+                // Define o tamanho de cada avatar na grade
+                img.setLayoutParams(new ViewGroup.LayoutParams(250, 250));
+                img.setPadding(16, 16, 16, 16);
+                img.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                return new RecyclerView.ViewHolder(img) {};
+            }
+
+            @Override
+            public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+                ImageView img = (ImageView) holder.itemView;
+                img.setImageResource(meusAvatares[position]);
+
+                img.setOnClickListener(v -> {
+                    // Transforma o recurso Drawable em um URI para o app aceitar
+                    Uri imageUri = Uri.parse("android.resource://" + getPackageName() + "/" + meusAvatares[position]);
+                    
+                    // Salva a escolha e carrega no preview grande (Isso já acende o botão de publicar!)
+                    avatarUri = imageUri;
+                    loadImageIntoPreview(imageUri);
+                });
+            }
+
+            @Override
+            public int getItemCount() {
+                return meusAvatares.length;
+            }
+        });
+        // --- FIM DA CONFIGURAÇÃO DA GRADE DE AVATARES ---
+
         this.binding.publishButton.setOnClickListener(
                 v -> {
                     final boolean open = !this.binding.contactOnly.isChecked();
-                    final var uri = this.avatarUri;
+                    final Uri uri = this.avatarUri;
                     if (uri == null) {
                         return;
                     }
@@ -118,6 +164,7 @@ public class PublishProfilePictureActivity extends XmppActivity
                     togglePublishButton(false, R.string.publishing);
                     xmppConnectionService.publishAvatar(account, uri, open, this);
                 });
+                
         this.binding.cancelButton.setOnClickListener(
                 v -> {
                     if (mInitialAccountSetup) {
@@ -132,11 +179,14 @@ public class PublishProfilePictureActivity extends XmppActivity
                     }
                     finish();
                 });
+                
+        // Mantém a opção de clicar na imagem grande para abrir a galeria
         this.binding.accountImage.setOnClickListener(v -> pickAvatar(null));
+        
         this.defaultUri = PhoneHelper.getProfilePictureUri(getApplicationContext());
         if (savedInstanceState != null) {
             this.avatarUri = savedInstanceState.getParcelable("uri");
-            final var accessModel = savedInstanceState.getString("access-model");
+            final String accessModel = savedInstanceState.getString("access-model");
             if (accessModel != null) {
                 this.accessModel = NodeConfiguration.AccessModel.valueOf(accessModel);
             }
@@ -193,7 +243,7 @@ public class PublishProfilePictureActivity extends XmppActivity
     }
 
     public static CropImageOptions getCropImageOptions() {
-        final var cropImageOptions = new CropImageOptions();
+        final CropImageOptions cropImageOptions = new CropImageOptions();
         cropImageOptions.aspectRatioX = 1;
         cropImageOptions.aspectRatioY = 1;
         cropImageOptions.fixAspectRatio = true;
@@ -216,7 +266,7 @@ public class PublishProfilePictureActivity extends XmppActivity
 
     @Override
     protected void onBackendConnected() {
-        final var account = extractAccount(getIntent());
+        final Account account = extractAccount(getIntent());
         this.account = account;
         if (account != null) {
             loadCurrentAccessModel(account);
@@ -226,13 +276,13 @@ public class PublishProfilePictureActivity extends XmppActivity
 
     private void loadCurrentAccessModel(final Account account) {
         binding.contactOnly.setVisibility(View.INVISIBLE);
-        final var currentPepAccessModel = getPepAccessModelOrCached(account);
+        final ListenableFuture<NodeConfiguration.AccessModel> currentPepAccessModel = getPepAccessModelOrCached(account);
         Futures.addCallback(
                 currentPepAccessModel,
-                new FutureCallback<>() {
+                new FutureCallback<NodeConfiguration.AccessModel>() {
                     @Override
                     public void onSuccess(final NodeConfiguration.AccessModel result) {
-                        accessModel = result; // cache for after rotation
+                        accessModel = result;
                         Log.d(Config.LOGTAG, "current access model: " + result);
                         binding.contactOnly.setChecked(
                                 result == NodeConfiguration.AccessModel.PRESENCE);
@@ -252,7 +302,7 @@ public class PublishProfilePictureActivity extends XmppActivity
 
     private ListenableFuture<NodeConfiguration.AccessModel> getPepAccessModelOrCached(
             final Account account) {
-        final var cached = this.accessModel;
+        final NodeConfiguration.AccessModel cached = this.accessModel;
         if (cached != null) {
             return Futures.immediateFuture(cached);
         }
@@ -286,13 +336,13 @@ public class PublishProfilePictureActivity extends XmppActivity
         }
         this.mInitialAccountSetup = intent.getBooleanExtra("setup", false);
 
-        final var data = intent.getData();
-        final var account = intent.getStringExtra(EXTRA_ACCOUNT);
+        final Uri data = intent.getData();
+        final String account = intent.getStringExtra(EXTRA_ACCOUNT);
         if (Intent.ACTION_ATTACH_DATA.equals(intent.getAction())
                 && data != null
                 && account != null) {
             pickAvatar(data);
-            final var replacement = new Intent(Intent.ACTION_MAIN);
+            final Intent replacement = new Intent(Intent.ACTION_MAIN);
             replacement.putExtra(EXTRA_ACCOUNT, account);
             setIntent(replacement);
             return;
@@ -341,6 +391,10 @@ public class PublishProfilePictureActivity extends XmppActivity
                 this.binding.hintOrWarning.setText(R.string.error_publish_avatar_offline);
             }
         }
+        
+        // CÓDIGO COMENTADO POIS APAGAMOS O secondaryHint DO XML NA ETAPA ANTERIOR
+        // se deixasse ativado, daria crash (NullPointerException)
+        /*
         if (this.defaultUri == null || this.defaultUri.equals(uri)) {
             this.binding.secondaryHint.setVisibility(View.INVISIBLE);
             this.binding.accountImage.setOnLongClickListener(null);
@@ -348,6 +402,7 @@ public class PublishProfilePictureActivity extends XmppActivity
             this.binding.secondaryHint.setVisibility(View.VISIBLE);
             this.binding.accountImage.setOnLongClickListener(this.backToDefaultListener);
         }
+        */
     }
 
     protected void togglePublishButton(boolean enabled, @StringRes int res) {
