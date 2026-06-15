@@ -61,7 +61,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="16dp"
-                    android:text="Gerar Avatar Aleatório 🎲" />
+                    android:text="Gerar Avatar Aleatório" />
 
                 <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/contact_only"
