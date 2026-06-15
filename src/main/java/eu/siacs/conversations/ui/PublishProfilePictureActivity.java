@@ -109,7 +109,8 @@ public class PublishProfilePictureActivity extends XmppActivity
                     finish();
                 });
 
-        this.binding.accountImage.setOnClickListener(v -> pickAvatar(null));
+        // A linha que abria a galeria foi removida daqui!
+        
         this.defaultUri = PhoneHelper.getProfilePictureUri(getApplicationContext());
         
         if (savedInstanceState != null) {
@@ -143,6 +144,9 @@ public class PublishProfilePictureActivity extends XmppActivity
                 // Atualiza o preview da tela com a imagem gerada
                 avatarUri = Uri.fromFile(tempFile);
                 loadImageIntoPreview(avatarUri);
+                
+                // MÁGICA: Removemos o quadrado cinza, deixando o fundo totalmente transparente
+                binding.accountImageWrapper.setBackgroundResource(0);
                 
             } catch (Exception e) {
                 e.printStackTrace();
