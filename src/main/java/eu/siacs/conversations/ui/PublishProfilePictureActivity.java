@@ -79,6 +79,10 @@ public class PublishProfilePictureActivity extends XmppActivity
         setSupportActionBar(binding.toolbar);
         Activities.setStatusAndNavigationBarColors(this, binding.getRoot());
 
+        // Removemos o fundo e a máscara do wrapper para não mostrar o quadrado cinza
+        this.binding.accountImageWrapper.setBackgroundResource(0);
+        this.binding.accountImageWrapper.setForeground(null);
+
         // Botão de Gerar Avatar Aleatório
         Button btnGenerate = binding.generateAvatarButton;
         btnGenerate.setOnClickListener(v -> gerarAvatarAleatorio());
@@ -124,7 +128,7 @@ public class PublishProfilePictureActivity extends XmppActivity
         // Gera um texto aleatório para servir de semente
         String randomSeed = UUID.randomUUID().toString().substring(0, 8);
         
-        // Puxa o seu arquivo Helper local para criar o Bitmap
+        // Puxa o seu arquivo Helper local para criar o Bitmap com fundo aleatório original
         Bitmap bitmap = eu.siacs.conversations.utils.MultiavatarHelper.generateAvatar(randomSeed, 500);
 
         if (bitmap != null) {
@@ -139,9 +143,6 @@ public class PublishProfilePictureActivity extends XmppActivity
                 // Atualiza o preview da tela com a imagem gerada
                 avatarUri = Uri.fromFile(tempFile);
                 loadImageIntoPreview(avatarUri);
-                
-                // MÁGICA: Removemos o quadrado cinza, deixando o fundo totalmente transparente
-                binding.accountImageWrapper.setBackgroundResource(0);
                 
             } catch (Exception e) {
                 e.printStackTrace();
