@@ -87,14 +87,27 @@
                     android:orientation="vertical"
                     android:paddingHorizontal="4dp">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/emoji_button"
+                        style="?attr/materialIconButtonStyle"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
-                        android:layout_marginVertical="8sp"
-                        android:layout_marginHorizontal="12dp"
+                        android:contentDescription="Abrir Emojis"
+                        app:icon="@drawable/ic_emoji_24dp"
+                        app:iconSize="24dp"
+                        app:iconTint="?colorOnTertiaryContainer" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@+id/emoji_button"
                         android:layout_toStartOf="@+id/attach_button"
+                        android:layout_centerVertical="true"
+                        android:layout_marginVertical="8sp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp"
                         android:orientation="vertical">
 
                         <TextView
@@ -117,11 +130,9 @@
                             android:visibility="gone"
                             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                             tools:listitem="@layout/item_media_preview">
-
                         </androidx.recyclerview.widget.RecyclerView>
 
                         <eu.siacs.conversations.ui.widget.EditMessage
-
                             android:id="@+id/text_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -135,7 +146,6 @@
                             android:textColor="?colorOnTertiaryContainer"
                             android:textColorHint="@color/hint_on_tertiary_container"
                             android:textCursorDrawable="@drawable/cursor_on_tertiary_container">
-
                             <requestFocus />
                         </eu.siacs.conversations.ui.widget.EditMessage>
 
@@ -153,7 +163,6 @@
                         app:icon="@drawable/ic_attach_file_24dp"
                         app:iconSize="24dp"
                         app:iconTint="?colorOnTertiaryContainer" />
-
 
                 </RelativeLayout>
 
