@@ -1395,10 +1395,11 @@ public class ConversationFragment extends XmppFragment
         }
         binding.attachButton.setToggleCheckedStateOnClick(false);
 
-        // NOVO: Constrói a gaveta de emojis conectada à sua caixa de texto
-        final com.vanniktech.emoji.EmojiPopup emojiPopup = com.vanniktech.emoji.EmojiPopup.Builder
-                .fromRootView(binding.getRoot())
-                .build(binding.textInput);
+        // NOVO: Constrói a gaveta de emojis (Sintaxe atualizada para a versão 0.20.0)
+        final com.vanniktech.emoji.EmojiPopup emojiPopup = new com.vanniktech.emoji.EmojiPopup(
+                binding.getRoot(),
+                binding.textInput
+        );
 
         // Ação do botão de Emoji
         binding.emojiButton.setOnClickListener(v -> {
