@@ -1,136 +1,116 @@
 package eu.siacs.conversations;
 
-import android.graphics.Bitmap;
-import android.net.Uri;
-import eu.siacs.conversations.xmpp.Jid;
-import im.conversations.android.xmpp.model.state.Active;
-import im.conversations.android.xmpp.model.state.ChatStateNotification;
-import java.util.Locale;
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Application;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.util.Log;
+import com.google.common.base.Stopwatch;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.Iterables;
+import eu.siacs.conversations.persistance.DatabaseBackend;
+import eu.siacs.conversations.services.EmojiInitializationService;
+import eu.siacs.conversations.ui.util.SettingsUtils;
+import eu.siacs.conversations.utils.ExceptionHelper;
+import java.security.Security;
+import java.util.Arrays;
+import java.util.Collection;
+import org.conscrypt.Conscrypt;
 
-public final class Config {
-    public static final String LOGTAG = BuildConfig.APP_NAME.toLowerCase(Locale.US);
+public class Conversations extends Application {
 
-    public static final boolean QUICK_LOG = false;
+    @SuppressLint("StaticFieldLeak")
+    private static Context CONTEXT;
 
-    public static final Jid BUG_REPORTS = Jid.of("bugs@conversations.im");
-    public static final Uri HELP = Uri.parse("https://help.conversations.im");
-    public static final String MAGIC_CREATE_DOMAIN = "conversations.im";
-    public static final Jid QUICKSY_DOMAIN = Jid.of("quicksy.im");
-
-    public static final String CHANNEL_DISCOVERY = "https://search.jabber.network";
-
-    public static final boolean DISALLOW_REGISTRATION_IN_UI = false; // hide the register checkbox
-
-    public static final boolean USE_RANDOM_RESOURCE_ON_EVERY_BIND = false;
-
-    public static final boolean MESSAGE_DISPLAYED_SYNCHRONIZATION = true;
-
-    public static final boolean ALLOW_NON_TLS_CONNECTIONS =
-            false; // very dangerous. you should have a good reason to set this to true
-
-    public static final long CONTACT_SYNC_RETRY_INTERVAL = 1000L * 60 * 5;
-
-    public static final boolean QUICKSTART_ENABLED = true;
-
-    // Notification settings
-    public static final boolean HIDE_MESSAGE_TEXT_IN_NOTIFICATION = false;
-    public static final boolean ALWAYS_NOTIFY_BY_DEFAULT = false;
-    public static final boolean SUPPRESS_ERROR_NOTIFICATION = false;
-
-    public static final int PING_MAX_INTERVAL = 300;
-    public static final int IDLE_PING_INTERVAL = 600; // 540 is minimum according to docs;
-    public static final int PING_MIN_INTERVAL = 30;
-    public static final int LOW_PING_TIMEOUT = 1; // used after push received
-    public static final int PING_TIMEOUT = 15;
-    public static final int SOCKET_TIMEOUT = 12_000;
-    public static final int SOCKET_TIMEOUT_LOW = 8_000;
-    public static final int CONNECT_TIMEOUT = 90;
-    public static final int POST_CONNECTIVITY_CHANGE_PING_INTERVAL = 30;
-    public static final int CONNECT_DISCO_TIMEOUT = 20;
-
-    public static final int AVATAR_THUMBNAIL_SIZE = 192;
-    public static final int AVATAR_THUMBNAIL_CHAR_LIMIT = 9400;
-    public static final int AVATAR_FULL_SIZE = 1280;
-
-    public static final int IMAGE_SIZE = 1920;
-    public static final Bitmap.CompressFormat IMAGE_FORMAT = Bitmap.CompressFormat.JPEG;
-    public static final int IMAGE_QUALITY = 75;
-
-    public static final boolean USE_OPUS_VOICE_MESSAGES = false;
-
-    public static final int MESSAGE_MERGE_WINDOW = 90_000;
-
-    public static final int PAGE_SIZE = 50;
-    public static final int MAX_NUM_PAGES = 3;
-    public static final int MAX_SEARCH_RESULTS = 300;
-
-    public static final int REFRESH_UI_INTERVAL = 500;
-
-    public static final int MAX_DISPLAY_MESSAGE_CHARS = 4096;
-    public static final int MAX_STORAGE_MESSAGE_CHARS = 2 * 1024 * 1024; // 2MB
-
-    public static final long MILLISECONDS_IN_DAY = 24 * 60 * 60 * 1000;
-
-    // remove *other* omemo devices from *your* device list announcement after not seeing any
-    // activity from them for 42 days. They will automatically add themselves after coming back
-    // online.
-    public static final long OMEMO_AUTO_EXPIRY = 42 * MILLISECONDS_IN_DAY;
-
-    public static final boolean REMOVE_BROKEN_DEVICES = false;
-    public static final boolean OMEMO_PADDING = false;
-    public static final boolean PUT_AUTH_TAG_INTO_KEY = true;
-    public static final boolean AUTOMATICALLY_COMPLETE_SESSIONS = true;
-    public static final boolean DISABLE_PROXY_LOOKUP =
-            false; // disables STUN/TURN and Proxy65 look up (useful to debug IBB fallback)
-    public static final boolean USE_DIRECT_JINGLE_CANDIDATES = true;
-    public static final boolean USE_JINGLE_MESSAGE_INIT = true;
-
-    public static final boolean ENABLE_CAPS_CACHE = true;
-
-    public static final boolean ENABLE_HTTP_UPLOAD = true;
-    public static final boolean EXTENDED_SM_LOGGING = false; // log stanza counts
-    public static final boolean BACKGROUND_STANZA_LOGGING =
-            false; // log all stanzas that were received while the app is in background
-    public static final boolean RESET_ATTEMPT_COUNT_ON_NETWORK_CHANGE =
-            true; // setting to true might increase power consumption
-
-    public static final boolean ENCRYPT_ON_HTTP_UPLOADED = false;
-
-    public static final boolean X509_VERIFICATION =
-            false; // use x509 certificates to verify OMEMO keys
-    public static final boolean REQUIRE_RTP_VERIFICATION =
-            false; // require a/v calls to be verified with OMEMO
-    public static final boolean JINGLE_MESSAGE_INIT_STRICT_OFFLINE_CHECK = false;
-    public static final boolean JINGLE_MESSAGE_INIT_STRICT_DEVICE_TIMEOUT = false;
-    public static final long DEVICE_DISCOVERY_TIMEOUT = 12_000; // in milliseconds
-
-    public static final boolean IGNORE_ID_REWRITE_IN_MUC = true;
-    public static final boolean MUC_LEAVE_BEFORE_JOIN = false;
-    // if this is set to true messages that contain multiple bodies (per language) will be ignored
-    public static final boolean TREAT_MULTI_CONTENT_AS_INVALID = false;
-
-    public static final long MAM_MAX_CATCHUP = MILLISECONDS_IN_DAY * 5;
-    public static final int MAM_MAX_MESSAGES = 750;
-
-    public static final Class<? extends ChatStateNotification> DEFAULT_CHAT_STATE = Active.class;
-    public static final int TYPING_TIMEOUT = 8;
-
-    public static final int EXPIRY_INTERVAL = 30 * 60 * 1000; // 30 minutes
-
-    private Config() {}
-
-    public static final class Map {
-        public static final double INITIAL_ZOOM_LEVEL = 4;
-        public static final double FINAL_ZOOM_LEVEL = 15;
-        public static final int MY_LOCATION_INDICATOR_SIZE = 10;
-        public static final int MY_LOCATION_INDICATOR_OUTLINE_SIZE = 3;
-        public static final long LOCATION_FIX_TIME_DELTA = 1000 * 10; // ms
-        public static final float LOCATION_FIX_SPACE_DELTA = 10; // m
-        public static final int LOCATION_FIX_SIGNIFICANT_TIME_DELTA = 1000 * 60 * 2; // ms
+    public static Context getContext() {
+        return Conversations.CONTEXT;
     }
 
-    // How deep nested quotes should be displayed. '2' means one quote nested in another.
-    public static final int QUOTE_MAX_DEPTH = 7;
-    // How deep nested quotes should be created on quoting a message.
-    public static final int QUOTING_MAX_DEPTH = 2;
+    private final Supplier<Collection<DatabaseBackend.AccountWithOptions>>
+            accountWithOptionsSupplier =
+                    () -> {
+                        final var stopwatch = Stopwatch.createStarted();
+                        final var accounts =
+                                DatabaseBackend.getInstance(Conversations.this)
+                                        .getAccountWithOptions();
+                        Log.d(
+                                Config.LOGTAG,
+                                "fetching accounts from database in " + stopwatch.stop());
+                        return accounts;
+                    };
+    private Supplier<Collection<DatabaseBackend.AccountWithOptions>> accountWithOptions =
+            Suppliers.memoize(accountWithOptionsSupplier);
+
+    private final Supplier<Boolean> microphoneAvailability =
+            () -> getPackageManager().hasSystemFeature(PackageManager.FEATURE_MICROPHONE);
+    private final Supplier<Boolean> declaredReadContacts =
+            () -> {
+                final String[] permissions;
+                try {
+                    permissions =
+                            getPackageManager()
+                                    .getPackageInfo(
+                                            getPackageName(), PackageManager.GET_PERMISSIONS)
+                                    .requestedPermissions;
+                } catch (final PackageManager.NameNotFoundException e) {
+                    return false;
+                }
+                if (permissions == null || permissions.length == 0) {
+                    return false;
+                }
+                return Iterables.any(
+                        Arrays.asList(permissions),
+                        p -> p != null && p.equals(Manifest.permission.READ_CONTACTS));
+            };
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        
+        // Liga o motor nativo de Emojis do Google que acabamos de instalar
+        com.vanniktech.emoji.EmojiManager.install(new com.vanniktech.emoji.google.GoogleEmojiProvider());
+        
+        installSecurityProvider();
+        CONTEXT = this.getApplicationContext();
+        EmojiInitializationService.execute(getApplicationContext());
+        ExceptionHelper.init(getApplicationContext());
+        SettingsUtils.applyThemeSettings(this);
+    }
+
+    private static void installSecurityProvider() {
+        try {
+            Security.insertProviderAt(Conscrypt.newProvider(), 1);
+        } catch (final Throwable throwable) {
+            Log.e(Config.LOGTAG, "could not install security provider", throwable);
+        }
+    }
+
+    public static Conversations getInstance(final Context context) {
+        if (context.getApplicationContext() instanceof Conversations c) {
+            return c;
+        }
+        throw new IllegalStateException("Application is not Conversations");
+    }
+
+    public void resetAccounts() {
+        this.accountWithOptions = Suppliers.memoize(accountWithOptionsSupplier);
+    }
+
+    public Collection<DatabaseBackend.AccountWithOptions> getAccounts() {
+        return this.accountWithOptions.get();
+    }
+
+    public boolean hasEnabledAccount() {
+        return DatabaseBackend.AccountWithOptions.hasEnabledAccount(getAccounts());
+    }
+
+    public boolean isMicrophoneAvailable() {
+        return this.microphoneAvailability.get();
+    }
+
+    public boolean isDeclaredContactsPermissions() {
+        return this.declaredReadContacts.get();
+    }
 }
