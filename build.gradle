@@ -48,10 +48,15 @@ dependencies {
     implementation 'org.immutables:value-annotations:2.12.2'
     annotationProcessor project(':libs:annotation-processor')
     implementation project(':libs:annotation')
-    
+
     // --- NOSSA FERRAMENTA: TRADUTOR DE SVG ---
     implementation 'com.caverock:androidsvg-aar:1.4'
     // -----------------------------------------
+
+    // --- NOSSA FERRAMENTA: TECLADO EMOJI PROFISSIONAL ---
+    implementation 'com.vanniktech:emoji-material:0.20.0'
+    implementation 'com.vanniktech:emoji-google:0.20.0'
+    // ---------------------------------------------------
 
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.cardview:cardview:1.0.0'
@@ -78,10 +83,10 @@ dependencies {
     implementation 'com.vanniktech:android-image-cropper:4.7.0'
     implementation 'im.conversations.webrtc:webrtc-android:129.0.0'
     implementation 'io.deepmedia.community:transcoder-android:0.11.2'
-    
+
     // A linha que eu tinha quebrado sem querer já está certinha aqui:
     implementation 'me.leolin:ShortcutBadger:1.1.22@aar'
-    
+
     //noinspection NewerVersionAvailable
     implementation 'net.fellbaum:jemoji:1.7.6' //1.7.6 is the latest with Java 8 support
     implementation 'org.bouncycastle:bcmail-jdk18on:1.84'
