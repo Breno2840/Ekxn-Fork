@@ -68,6 +68,10 @@ public class Conversations extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        
+        // Liga o motor nativo de Emojis do Google que acabamos de instalar
+        com.vanniktech.emoji.EmojiManager.install(new com.vanniktech.emoji.google.GoogleEmojiProvider());
+        
         installSecurityProvider();
         CONTEXT = this.getApplicationContext();
         EmojiInitializationService.execute(getApplicationContext());
