@@ -1394,6 +1394,17 @@ public class ConversationFragment extends XmppFragment
             viewIdBuilder.add(id);
         }
         binding.attachButton.setToggleCheckedStateOnClick(false);
+
+        // NOVO: Constrói a gaveta de emojis conectada à sua caixa de texto
+        final com.vanniktech.emoji.EmojiPopup emojiPopup = com.vanniktech.emoji.EmojiPopup.Builder
+                .fromRootView(binding.getRoot())
+                .build(binding.textInput);
+
+        // Ação do botão de Emoji
+        binding.emojiButton.setOnClickListener(v -> {
+            emojiPopup.toggle(); // Se o painel estiver fechado, ele abre. Se estiver aberto, ele fecha!
+        });
+
         binding.attachButton.setOnClickListener((v) -> toggleAttachmentChoicesVisibility());
         binding.attachmentChoicesFlow.setReferencedIds(Ints.toArray(viewIdBuilder.build()));
         binding.getRoot().setOnClickListener(null); // TODO why the fuck did we do this?
